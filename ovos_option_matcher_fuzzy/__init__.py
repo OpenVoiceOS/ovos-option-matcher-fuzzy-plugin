@@ -2,9 +2,8 @@
 # Apache 2.0
 
 import os
-import re
 from functools import lru_cache
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 from ovos_plugin_manager.templates.agents import OptionMatcherEngine
 from ovos_utils.parse import match_one
@@ -17,16 +16,6 @@ _CARDINAL_NAMES = ["one", "two", "three", "four", "five",
                    "six", "seven", "eight", "nine", "ten"]
 
 
-def _word_match(word: str, text: str) -> bool:
-    """Return True if *word* appears as a whole word in *text*."""
-    return bool(re.search(r"(?<!\w)" + re.escape(word) + r"(?!\w)", text))
-
-
-def _any_word_match(words: Set[str], text: str) -> bool:
-    """Return True if any entry in *words* appears as a whole word in *text*."""
-    return any(_word_match(w, text) for w in words)
-
-
 def _read_voc(path: str) -> Set[str]:
     """Read a .voc file into a set of lowercase stripped strings."""
     with open(path, encoding="utf-8") as fh:
@@ -34,7 +23,7 @@ def _read_voc(path: str) -> Set[str]:
 
 
 def _candidate_langs(lang: str) -> List[str]:
-    """Return candidate locale directories to check in priority order."""
+    """Return locale directories to try in priority order."""
     return [lang, lang.split("-")[0], "en-us"]
 
 
@@ -46,7 +35,7 @@ def _load_last_vocab(lang: str) -> Set[str]:
         lang: BCP-47 language tag.
 
     Returns:
-        Set of lowercase words meaning "last" in that language.
+        Set of lowercase words/phrases meaning "last" in that language.
     """
     for candidate in _candidate_langs(lang):
         path = os.path.join(_LOCALE_DIR, candidate, "last.voc")
@@ -57,17 +46,17 @@ def _load_last_vocab(lang: str) -> Set[str]:
 
 @lru_cache(maxsize=32)
 def _load_position_vocab(lang: str) -> Dict[int, Set[str]]:
-    """Load ordinal and cardinal .voc files for *lang* into a position map.
+    """Load ordinal and cardinal .voc files into a 0-based position map.
 
-    Returns a dict mapping 0-based index -> set of words that reference that
-    position (e.g. index 0: {"first", "one", ...}).  Falls back through the
-    language prefix then en-us for each missing file.
+    Both ``first.voc``/``one.voc`` … ``tenth.voc``/``ten.voc`` are merged per
+    position.  Multi-word entries (e.g. "second one") are included verbatim so
+    they win over shorter single-word entries during longest-match selection.
 
     Args:
         lang: BCP-47 language tag.
 
     Returns:
-        Dict mapping position index (0-based) to a set of trigger words.
+        Dict mapping 0-based index to a set of trigger words/phrases.
     """
     result: Dict[int, Set[str]] = {}
     for i, (ord_name, card_name) in enumerate(zip(_ORDINAL_NAMES, _CARDINAL_NAMES)):
@@ -86,9 +75,13 @@ class FuzzyOptionMatcherPlugin(OptionMatcherEngine):
     """OptionMatcherEngine that resolves a user utterance to a predefined slot.
 
     Resolution order (first match wins):
+
     1. Fuzzy match via rapidfuzz WRatio — if score >= min_conf.
-    2. Locale-aware last.voc keyword — returns the final option.
-    3. Ordinal/cardinal vocab (first.voc … tenth.voc, one.voc … ten.voc).
+    2. Locale-aware ``last.voc`` keyword — returns the final option.
+    3. Ordinal/cardinal vocab (``first.voc`` … ``tenth.voc``, ``one.voc`` …
+       ``ten.voc``).  Multi-word entries (e.g. "second one") are included in
+       the vocab files and win over shorter single-word entries through
+       longest-match selection, eliminating greedy false positives.
     4. Numeric fallback via ovos-number-parser (optional dependency).
     5. None if nothing matches.
 
@@ -118,22 +111,21 @@ class FuzzyOptionMatcherPlugin(OptionMatcherEngine):
             return match
 
         # 2. Last-option vocab
-        if _any_word_match(_load_last_vocab(lang), utterance_lower):
+        if any(w in utterance_lower for w in _load_last_vocab(lang)):
             return options[-1]
 
-        # 3. Ordinal/cardinal vocab (covers positions 0-9)
-        # Collect all matches then pick the one triggered by the longest word
-        # (avoids short cardinals like "one" stealing matches from "second one").
+        # 3. Ordinal/cardinal vocab — longest matching entry wins.
+        # Multi-word .voc entries (e.g. "second one") beat shorter single
+        # words ("one") naturally, since we pick the longest matched phrase.
         position_vocab = _load_position_vocab(lang)
-        best_idx: Optional[int] = None
-        best_len = 0
+        best: Optional[Tuple[int, int]] = None  # (idx, matched_word_len)
         for idx in range(min(len(options), len(_ORDINAL_NAMES))):
-            for word in position_vocab.get(idx, ()):
-                if len(word) > best_len and _word_match(word, utterance_lower):
-                    best_idx = idx
-                    best_len = len(word)
-        if best_idx is not None:
-            return options[best_idx]
+            for phrase in position_vocab.get(idx, ()):
+                if phrase in utterance_lower:
+                    if best is None or len(phrase) > best[1]:
+                        best = (idx, len(phrase))
+        if best is not None:
+            return options[best[0]]
 
         # 4. Numeric fallback via ovos-number-parser (optional)
         try:

@@ -1,45 +1,127 @@
-# ovos-reranker-fuzzy-plugin
-
-**Package**: `ovos-reranker-fuzzy-plugin`
-**Entry point group**: `opm.agents.reranker`
-**Plugin class**: `FuzzyReRankerPlugin` — `ovos_reranker_fuzzy/__init__.py`
+# ovos-option-matcher-fuzzy-plugin
 
 ## Overview
 
-Implements `ReRankerEngine` from `ovos-plugin-manager` using `rapidfuzz` `WRatio` string similarity. Provides fuzzy ranking of candidate options against a query, with automatic fallback to ordinal/last-word resolution when similarity falls below the configured threshold.
+`ovos-option-matcher-fuzzy-plugin` implements the `OptionMatcherEngine` agent plugin type for OpenVoiceOS. It resolves a free-form user utterance to one of a predefined set of option slots — the kind of matching required by `OVOSSkill.ask_selection`.
 
-## Key Classes
+**Plugin class**: `FuzzyOptionMatcherPlugin` — `ovos_option_matcher_fuzzy/__init__.py`
+**Entry point group**: `opm.agents.option_matcher`
+**Entry point name**: `ovos-option-matcher-fuzzy-plugin`
 
-| Class | File | Description |
-|-------|------|-------------|
-| `FuzzyReRankerPlugin` | `ovos_reranker_fuzzy/__init__.py:14` | Main plugin; implements `rerank()` and `select_answer()` |
+---
 
-## Public API
+## Resolution pipeline
 
-### `FuzzyReRankerPlugin.rerank(query, options, lang=None, return_index=False)`
+`FuzzyOptionMatcherPlugin.match_option(utterance, options, lang)` runs four stages in order; the first match wins.
 
-Scores all options against `query` using `rapidfuzz.fuzz.WRatio`. Returns a list of `(score, option_or_index)` tuples sorted by score descending. Scores are normalized to `[0, 1]`.
+| Stage | Mechanism | Returns |
+|-------|-----------|---------|
+| 1 | **Fuzzy match** — rapidfuzz `WRatio` via `ovos_utils.parse.match_one` | Matched option string |
+| 2 | **Last-option vocab** — `locale/<lang>/last.voc` word in utterance | `options[-1]` |
+| 3 | **Ordinal/cardinal vocab** — `first.voc`…`tenth.voc`, `one.voc`…`ten.voc`; longest phrase wins | `options[n]` |
+| 4 | **Numeric fallback** — `ovos_number_parser.extract_number` (optional dep) | `options[n]` |
+| — | No match | `None` |
 
-`FuzzyReRankerPlugin.rerank` — `ovos_reranker_fuzzy/__init__.py:29`
+### Multi-word ordinal entries
 
-### `FuzzyReRankerPlugin.select_answer(query, options, lang=None, return_index=False)`
+Each ordinal `.voc` file contains single-word forms **and** multi-word phrases such as "second one", "number two", "option two". The matcher picks the longest phrase found in the utterance, so "second one" correctly wins over the bare cardinal "one" — no regex word-boundary logic needed.
 
-Selects the single best match using:
-1. Fuzzy match via `ovos_utils.parse.match_one` — accepted if score ≥ `min_conf`.
-2. Last-word fallback: if `query` contains "last", "latest", or "final" → returns `options[-1]`.
-3. Ordinal fallback: `ovos_number_parser.extract_number(ordinals=True)` → maps to 1-based index.
-4. Returns `None` if no strategy matches.
+---
 
-`FuzzyReRankerPlugin.select_answer` — `ovos_reranker_fuzzy/__init__.py:55`
+## Locale files
+
+```
+locale/
+  <lang>/
+    last.voc          # words meaning "last/final"
+    first.voc         # words/phrases for position 1 (incl. "first one", "number one")
+    one.voc           # cardinal for position 1
+    second.voc        # words/phrases for position 2 (incl. "second one", "number two")
+    two.voc
+    …
+    tenth.voc
+    ten.voc
+```
+
+Lookup order for a missing locale file: `<lang>` → language prefix (e.g. `de`) → `en-us`.
+Results are cached per language tag with `functools.lru_cache`.
+
+### Supported languages
+
+| Tag | Language |
+|-----|----------|
+| `ca-es` | Catalan |
+| `cs-cz` | Czech |
+| `da-dk` | Danish |
+| `de-de` | German |
+| `en-us` | English |
+| `es-es` | Spanish |
+| `eu-eu` | Basque |
+| `fr-fr` | French |
+| `gl-es` | Galician |
+| `it-it` | Italian |
+| `nl-nl` | Dutch |
+| `pl-pl` | Polish |
+| `pt-br` | Portuguese (Brazil) |
+| `pt-pt` | Portuguese (Portugal) |
+| `sv-se` | Swedish |
+
+Translations are contributed via the [OVOS GitLocalize](https://gitlocalize.com/openvoiceos) platform. To add a new language, create a `locale/<lang>/` directory and submit a PR.
+
+---
 
 ## Configuration
 
-Set under `mycroft.conf` (skills block) or skill settings:
+Set under `mycroft.conf` `skills` block or per-skill `settings.json`:
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `min_conf` | `0.65` | Minimum score for direct fuzzy acceptance |
+```json
+{
+  "ask_selection_plugin": "ovos-option-matcher-fuzzy-plugin",
+  "ask_selection_plugin_config": {
+    "min_conf": 0.65
+  }
+}
+```
 
-## Relation to ovos-workshop
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `min_conf` | `float` | `0.65` | Fuzzy score threshold (0–1). Below this, vocab and numeric fallbacks are tried. |
 
-The logic mirrors `_fuzzy_select` in `ovos_workshop/skills/ovos.py:81`, extracted into a standalone OPM-registered plugin so any component can reuse it without importing `ovos-workshop`.
+---
+
+## Adding translations
+
+To translate the vocab files for a new language:
+
+1. Copy `locale/en-us/` to `locale/<your-lang>/`.
+2. Translate every word/phrase in each `.voc` file. **Do not translate the filename itself** — filenames are the canonical English slot names (`first.voc`, `one.voc`, etc.).
+3. Multi-word entries (e.g. "second one") should be translated as natural phrases in the target language.
+4. Submit a PR or contribute via GitLocalize.
+
+---
+
+## Public API
+
+### `FuzzyOptionMatcherPlugin.match_option`
+
+```python
+def match_option(
+    utterance: str,
+    options: List[str],
+    lang: Optional[str] = None,
+) -> Optional[str]
+```
+
+**Args**:
+- `utterance` — raw user response string
+- `options` — list of candidate option strings the skill presented
+- `lang` — BCP-47 language code (default `"en-us"`)
+
+**Returns**: the matched option string, or `None` if no match.
+
+### Module-level helpers (internal, cached)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `_load_last_vocab` | `(lang: str) -> Set[str]` | Load `last.voc` for *lang* |
+| `_load_position_vocab` | `(lang: str) -> Dict[int, Set[str]]` | Load all ordinal+cardinal voc files into a 0-based position map |
