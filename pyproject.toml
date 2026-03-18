@@ -13,9 +13,11 @@ requires-python = ">=3.10"
 keywords = ["OVOS", "openvoiceos", "plugin", "option-matcher", "fuzzy"]
 dependencies = [
     "ovos-plugin-manager<3.0.0",
-    "ovos-number-parser>=0.0.1,<1.0.0",
     "rapidfuzz",
 ]
+
+[project.optional-dependencies]
+number-parser = ["ovos-number-parser>=0.0.1,<1.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin"
