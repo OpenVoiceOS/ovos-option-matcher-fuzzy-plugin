@@ -52,6 +52,20 @@ def test_match_numeric_option(matcher: FuzzyOptionMatcherPlugin) -> None:
     assert result == OPTIONS[0]
 
 
+def test_match_ordinal_last_german(matcher: FuzzyOptionMatcherPlugin) -> None:
+    """'letzte' (German last.voc) should return the final option."""
+    result = matcher.match_option("die letzte option", OPTIONS, lang="de-de")
+    assert result == OPTIONS[-1]
+
+
+def test_locale_fallback_to_en_us() -> None:
+    """Unknown lang falls back to en-us vocab."""
+    from ovos_option_matcher_fuzzy import _load_last_vocab
+    _load_last_vocab.cache_clear()
+    vocab = _load_last_vocab("xx-xx")
+    assert "last" in vocab
+
+
 def test_config_min_conf_respected() -> None:
     """A high min_conf should force the fallback path even for good matches."""
     strict = FuzzyOptionMatcherPlugin(config={"min_conf": 0.99})
