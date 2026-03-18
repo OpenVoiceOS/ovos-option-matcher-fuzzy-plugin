@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ovos-reranker-fuzzy-plugin"
+name = "ovos-option-matcher-fuzzy-plugin"
 dynamic = ["version"]
-description = "Fuzzy-match ReRanker agent plugin for OpenVoiceOS"
+description = "Fuzzy-match OptionMatcher agent plugin for OpenVoiceOS"
 readme = "README.md"
 license = "apache-2.0"
 authors = [{name = "OpenVoiceOS", email = "jarbasai@mailfence.com"}]
 requires-python = ">=3.10"
-keywords = ["OVOS", "openvoiceos", "plugin", "reranker", "fuzzy"]
+keywords = ["OVOS", "openvoiceos", "plugin", "option-matcher", "fuzzy"]
 dependencies = [
     "ovos-plugin-manager<3.0.0",
     "ovos-number-parser>=0.0.1,<1.0.0",
@@ -18,14 +18,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/OpenVoiceOS/ovos-reranker-fuzzy-plugin"
-Repository = "https://github.com/OpenVoiceOS/ovos-reranker-fuzzy-plugin"
+Homepage = "https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin"
+Repository = "https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin"
 
-[project.entry-points."opm.agents.reranker"]
-ovos-reranker-fuzzy-plugin = "ovos_reranker_fuzzy:FuzzyReRankerPlugin"
+[project.entry-points."opm.agents.option_matcher"]
+ovos-option-matcher-fuzzy-plugin = "ovos_option_matcher_fuzzy:FuzzyOptionMatcherPlugin"
 
 [tool.setuptools.packages.find]
-include = ["ovos_reranker_fuzzy*"]
+include = ["ovos_option_matcher_fuzzy*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "ovos_reranker_fuzzy.version.__version__"}
+version = {attr = "ovos_option_matcher_fuzzy.version.__version__"}
