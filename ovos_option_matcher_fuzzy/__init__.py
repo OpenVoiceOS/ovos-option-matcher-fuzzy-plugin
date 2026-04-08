@@ -44,12 +44,12 @@ def _best_lang(lang: str) -> str:
     available = _available_langs()
     if lang in available:
         return lang
-    best, best_dist = None, 10
+    best, best_dist = None, 100000
     for candidate in available:
         dist = tag_distance(lang, candidate)
         if dist < best_dist:
             best, best_dist = candidate, dist
-    if best is None:
+    if best is None or best_dist > 10:
         raise ValueError(f"Unsupported language: {lang!r}. Available: {available}")
     return best
 
