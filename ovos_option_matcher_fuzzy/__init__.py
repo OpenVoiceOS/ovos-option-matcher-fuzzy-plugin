@@ -23,8 +23,18 @@ def _read_voc(path: str) -> Set[str]:
 
 
 def _candidate_langs(lang: str) -> List[str]:
-    """Return locale directories to try in priority order."""
-    return [lang, lang.split("-")[0], "en-us"]
+    """Return locale directories to try in priority order.
+
+    Normalises *lang* to canonical BCP-47 form (``xx-XX``) so that callers
+    passing ``en-us`` or ``en-US`` both resolve to the same ``locale/en-US/``
+    directory.
+    """
+    parts = lang.split("-")
+    if len(parts) >= 2:
+        normalized = f"{parts[0].lower()}-{parts[1].upper()}"
+    else:
+        normalized = parts[0].lower()
+    return [normalized, parts[0].lower(), "en-US"]
 
 
 @lru_cache(maxsize=32)
