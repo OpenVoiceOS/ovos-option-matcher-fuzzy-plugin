@@ -12,7 +12,7 @@ authors = [{name = "OpenVoiceOS", email = "jarbasai@mailfence.com"}]
 requires-python = ">=3.10"
 keywords = ["OVOS", "openvoiceos", "plugin", "option-matcher", "fuzzy"]
 dependencies = [
-    "ovos-plugin-manager<3.0.0",
+    "ovos-plugin-manager>=2.4.0a1,<3.0.0",
     "rapidfuzz",
 ]
 
