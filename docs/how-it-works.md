@@ -29,7 +29,7 @@ Checks whether any word or phrase from `locale/<lang>/last.voc` appears in the u
 
 ```
 utterance: "the last one please"
-last.voc (en-us): final, last, latest
+last.voc (en-US): final, last, latest
 
 "last" found → return options[-1]
 ```
@@ -52,7 +52,7 @@ Checks the utterance against `.voc` files for positions 1–10:
 Both files are merged per position. The matcher scans the utterance for every phrase in both files and picks the **longest matching phrase**. Longer phrases win because ordinal `.voc` files also contain multi-word entries:
 
 ```
-locale/en-us/second.voc:
+locale/en-US/second.voc:
   second
   second one      ← also here
   number two
@@ -124,6 +124,7 @@ Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring opti
 
 ## Source reference
 
-- `FuzzyOptionMatcherPlugin.match_option` — `ovos_option_matcher_fuzzy/__init__.py`
-- `_load_last_vocab(lang)` — loads and caches `last.voc`
-- `_load_position_vocab(lang)` — loads and caches all ordinal/cardinal `.voc` files into a `Dict[int, Set[str]]`
+- `FuzzyOptionMatcherPlugin.match_option` — `ovos_option_matcher_fuzzy/__init__.py:92`
+- `_load_last_vocab(lang)` — loads and caches `last.voc` — `ovos_option_matcher_fuzzy/__init__.py:31`
+- `_load_position_vocab(lang)` — loads and caches all ordinal/cardinal `.voc` files into a `Dict[int, Set[str]]` — `ovos_option_matcher_fuzzy/__init__.py:47`
+- `_candidate_langs(lang)` — returns `[lang, lang.split("-")[0], "en-us"]` as lookup priority — `ovos_option_matcher_fuzzy/__init__.py:25`

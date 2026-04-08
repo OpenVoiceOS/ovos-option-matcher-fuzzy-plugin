@@ -8,21 +8,21 @@ The plugin ships `.voc` files for 15 languages. All locale files live under `loc
 
 | Tag | Language | Ordinal/cardinal voc | Multi-word phrases | `last.voc` |
 |-----|----------|---------------------|--------------------|------------|
-| `ca-es` | Catalan | ✓ | — | ✓ |
-| `cs-cz` | Czech | ✓ | — | ✓ |
-| `da-dk` | Danish | ✓ | — | ✓ |
-| `de-de` | German | ✓ | ✓ | ✓ |
-| `en-us` | English | ✓ | ✓ | ✓ |
-| `es-es` | Spanish | ✓ | ✓ | ✓ |
-| `eu-eu` | Basque | ✓ | — | ✓ |
-| `fr-fr` | French | ✓ | ✓ | ✓ |
-| `gl-es` | Galician | ✓ | — | ✓ |
-| `it-it` | Italian | ✓ | — | ✓ |
-| `nl-nl` | Dutch | ✓ | — | ✓ |
-| `pl-pl` | Polish | ✓ | — | ✓ |
-| `pt-br` | Portuguese (Brazil) | ✓ | — | ✓ |
-| `pt-pt` | Portuguese (Portugal) | ✓ | — | ✓ |
-| `sv-se` | Swedish | ✓ | — | ✓ |
+| `ca-ES` | Catalan | ✓ | — | ✓ |
+| `cs-CZ` | Czech | ✓ | — | ✓ |
+| `da-DK` | Danish | ✓ | — | ✓ |
+| `de-DE` | German | ✓ | ✓ | ✓ |
+| `en-US` | English | ✓ | ✓ | ✓ |
+| `es-ES` | Spanish | ✓ | ✓ | ✓ |
+| `eu-ES` | Basque | ✓ | — | ✓ |
+| `fr-FR` | French | ✓ | ✓ | ✓ |
+| `gl-ES` | Galician | ✓ | — | ✓ |
+| `it-IT` | Italian | ✓ | — | ✓ |
+| `nl-NL` | Dutch | ✓ | — | ✓ |
+| `pl-PL` | Polish | ✓ | — | ✓ |
+| `pt-BR` | Portuguese (Brazil) | ✓ | — | ✓ |
+| `pt-PT` | Portuguese (Portugal) | ✓ | — | ✓ |
+| `sv-SE` | Swedish | ✓ | — | ✓ |
 
 Languages marked **"Multi-word phrases ✓"** have entries like "second one", "número dos" in their ordinal `.voc` files. Languages without them rely on single-word ordinals and the numeric fallback stage.
 
@@ -32,7 +32,7 @@ Languages marked **"Multi-word phrases ✓"** have entries like "second one", "n
 
 ```
 locale/
-  en-us/
+  en-US/
     last.voc        ← words meaning "last/final"
     first.voc       ← words/phrases for position 1
     one.voc         ← cardinal words for position 1
@@ -64,11 +64,13 @@ Each file contains one word or phrase per line, lowercase. Blank lines and leadi
 
 ## How lookup works
 
-For a given `lang` (e.g. `"de-de"`), the plugin tries:
+For a given `lang` (e.g. `"de-DE"`), the plugin tries:
 
-1. `locale/de-de/<file>.voc`
+1. `locale/de-DE/<file>.voc`
 2. `locale/de/<file>.voc` (language prefix without region)
-3. `locale/en-us/<file>.voc` (hard fallback)
+3. `locale/en-US/<file>.voc` (hard fallback)
+
+Locale folder names use canonical BCP-47 casing (e.g. `en-US`, `de-DE`, `pt-BR`). The `lang` value passed by `OVOSSkill.ask_selection` comes from `self.lang`, which is already normalized by `standardize_lang_tag` and matches this casing. — `ovos_workshop/skills/ovos.py:2035`
 
 Results are cached per language tag in memory (`lru_cache`) so file I/O only happens once per process.
 
@@ -76,14 +78,14 @@ Results are cached per language tag in memory (`lru_cache`) so file I/O only hap
 
 ## Adding a new language
 
-1. Create the directory:
+1. Create the directory using canonical BCP-47 casing (language subtag lowercase, region subtag uppercase):
    ```bash
-   mkdir locale/xx-xx
+   mkdir locale/xx-XX
    ```
 
 2. Copy English as a starting point:
    ```bash
-   cp locale/en-us/* locale/xx-xx/
+   cp locale/en-US/* locale/xx-XX/
    ```
 
 3. Translate every line in every file. Keep one entry per line.
@@ -94,7 +96,7 @@ Results are cached per language tag in memory (`lru_cache`) so file I/O only hap
    - The ordinal word(s) in all grammatical forms (gender, case, etc.)
    - Multi-word phrases: `"<ordinal> one"`, `"number <cardinal>"`, `"option <cardinal>"` translated naturally.
 
-   Example `de-de/second.voc`:
+   Example `de-DE/second.voc`:
    ```
    zweite
    zweiten
@@ -115,7 +117,7 @@ Results are cached per language tag in memory (`lru_cache`) so file I/O only hap
 
 Open the relevant `locale/<lang>/` files and add missing:
 - Inflected forms (plurals, gendered variants, case endings)
-- Regional variants (e.g. `pt-br` vs `pt-pt`)
+- Regional variants (e.g. `pt-BR` vs `pt-PT`)
 - Multi-word phrases for ordinal files if not yet present
 
 Run the tests after editing to verify nothing regresses:

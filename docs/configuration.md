@@ -6,39 +6,51 @@
 |-----|------|---------|-------------|
 | `min_conf` | `float` | `0.65` | Fuzzy-match confidence threshold (0–1). The utterance must score at least this high against an option for Stage 1 to return it. Scores below this fall through to vocab and numeric stages. |
 
+`min_conf` is read from `self.config` inside `FuzzyOptionMatcherPlugin.match_option` — `ovos_option_matcher_fuzzy/__init__.py:105`.
+
 ---
 
-## Where to set it
+## Passing config
 
-### Global default — `mycroft.conf`
+The `config` dict is set at instantiation time via `FuzzyOptionMatcherPlugin(config={...})`.
 
-Applies to every skill that uses the default plugin:
+When the plugin is loaded automatically by `OVOSSkill.ask_selection`, it is instantiated with no arguments (`cls()` — `ovos_workshop/skills/ovos.py:1964`), so `min_conf` is always `0.65` in that path. To use a custom threshold, switch to a different plugin entry point or use the plugin directly.
+
+**Direct instantiation with a custom threshold:**
+
+```python
+from ovos_option_matcher_fuzzy import FuzzyOptionMatcherPlugin
+
+matcher = FuzzyOptionMatcherPlugin(config={"min_conf": 0.80})
+result = matcher.match_option("rock", ["jazz", "rock", "classical"])
+# "rock"
+```
+
+---
+
+## Switching the plugin per-skill
+
+To use a different `OptionMatcherEngine` plugin for one skill only, set `ask_selection_plugin` in that skill's `settings.json`:
+
+```json
+{
+  "ask_selection_plugin": "my-custom-option-matcher-plugin"
+}
+```
+
+`OVOSSkill._get_selection_engine` checks `settings.json` first, then `mycroft.conf` `skills.ask_selection_plugin`, then defaults to `"ovos-option-matcher-fuzzy-plugin"` — `ovos_workshop/skills/ovos.py:1957–1959`.
+
+## Setting the global default
+
+To make this plugin the system-wide default in `mycroft.conf`:
 
 ```json
 {
   "skills": {
-    "ask_selection_plugin": "ovos-option-matcher-fuzzy-plugin",
-    "ask_selection_plugin_config": {
-      "min_conf": 0.65
-    }
+    "ask_selection_plugin": "ovos-option-matcher-fuzzy-plugin"
   }
 }
 ```
-
-### Per-skill override — `settings.json`
-
-Place in the skill's `settings.json` to override the global value for that skill only:
-
-```json
-{
-  "ask_selection_plugin": "ovos-option-matcher-fuzzy-plugin",
-  "ask_selection_plugin_config": {
-    "min_conf": 0.75
-  }
-}
-```
-
-A skill can also switch to a completely different plugin by setting `ask_selection_plugin` to another entry point name.
 
 ---
 
