@@ -20,6 +20,7 @@ dependencies = [
     "ovos-utils>=0.8.0",
     "langcodes>=3.0.0",
     "rapidfuzz",
+    "ovos-number-parser>=0.0.1,<1.0.0",
 ]
 
 [project.optional-dependencies]
