@@ -1,0 +1,23 @@
+name: Publish Stable Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+
+permissions:
+  contents: write   # required for version bump commit and release tag
+
+jobs:
+  publish_stable:
+    if: github.actor != 'github-actions[bot]'
+    uses: OpenVoiceOS/gh-automations/.github/workflows/publish-stable.yml@fa39846b074ac7a856c8af5f8c0dec12b1fff1aa
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      MATRIX_TOKEN: ${{ secrets.MATRIX_TOKEN }}
+    with:
+      version_file: 'ovos_option_matcher_fuzzy/version.py'
+      publish_pypi: true
+      publish_release: true
+      sync_dev: true
+      notify_matrix: true

@@ -1,0 +1,14 @@
+name: Release Preview
+
+on:
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  release_preview:
+    uses: OpenVoiceOS/gh-automations/.github/workflows/release-preview.yml@fa39846b074ac7a856c8af5f8c0dec12b1fff1aa
+    secrets: inherit
+    with:
+      package_name: 'ovos_option_matcher_fuzzy_plugin'
+      version_file: 'ovos_option_matcher_fuzzy/version.py'
