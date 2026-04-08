@@ -45,4 +45,4 @@ matcher.match_option("something else entirely", options) # None
 | **Entry point name** | `ovos-option-matcher-fuzzy-plugin` |
 | **Required deps** | `ovos-plugin-manager`, `rapidfuzz` |
 | **Optional deps** | `ovos-number-parser` (positions 11+, digit references) |
-| **Languages** | 15 built-in (see [Localization](localization.md)) |
+| **Languages** | 15 built-in: `ca-ES` `cs-CZ` `da-DK` `de-DE` `en-US` `es-ES` `eu-ES` `fr-FR` `gl-ES` `it-IT` `nl-NL` `pl-PL` `pt-BR` `pt-PT` `sv-SE` — see [Localization](localization.md) |

@@ -59,9 +59,9 @@ def test_match_last_german(matcher):
     assert matcher.match_option("die letzte option", SIMPLE, lang="de-de") == "epsilon"
 
 
-def test_locale_last_fallback_to_en_us():
-    vocab = _load_last_vocab("xx-xx")
-    assert "last" in vocab
+def test_locale_unsupported_lang_raises():
+    with pytest.raises(ValueError, match="Unsupported language"):
+        _load_last_vocab("xx-XX")
 
 
 # --- Ordinal vocab ---
