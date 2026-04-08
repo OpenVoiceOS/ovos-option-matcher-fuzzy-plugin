@@ -13,7 +13,7 @@ permissions:
 jobs:
   publish_alpha:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    uses: OpenVoiceOS/gh-automations/.github/workflows/publish-alpha.yml@fa39846b074ac7a856c8af5f8c0dec12b1fff1aa
+    uses: OpenVoiceOS/gh-automations/.github/workflows/publish-alpha.yml@dev
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       MATRIX_TOKEN: ${{ secrets.MATRIX_TOKEN }}

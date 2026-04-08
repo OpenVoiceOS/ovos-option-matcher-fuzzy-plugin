@@ -11,7 +11,7 @@ permissions:
 jobs:
   publish_stable:
     if: github.actor != 'github-actions[bot]'
-    uses: OpenVoiceOS/gh-automations/.github/workflows/publish-stable.yml@fa39846b074ac7a856c8af5f8c0dec12b1fff1aa
+    uses: OpenVoiceOS/gh-automations/.github/workflows/publish-stable.yml@dev
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       MATRIX_TOKEN: ${{ secrets.MATRIX_TOKEN }}
