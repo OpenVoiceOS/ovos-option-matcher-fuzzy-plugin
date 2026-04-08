@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from ovos_plugin_manager.templates.agents import OptionMatcherEngine
 from ovos_utils.parse import match_one
 
-_LOCALE_DIR = os.path.join(os.path.dirname(__file__), "..", "locale")
+_LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
 
 _ORDINAL_NAMES = ["first", "second", "third", "fourth", "fifth",
                   "sixth", "seventh", "eighth", "ninth", "tenth"]

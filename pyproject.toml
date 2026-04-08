@@ -7,7 +7,7 @@ name = "ovos-option-matcher-fuzzy-plugin"
 dynamic = ["version"]
 description = "Fuzzy-match OptionMatcher agent plugin for OpenVoiceOS"
 readme = "README.md"
-license = "apache-2.0"
+license = {text = "Apache-2.0"}
 authors = [{name = "OpenVoiceOS", email = "jarbasai@mailfence.com"}]
 requires-python = ">=3.10"
 keywords = ["OVOS", "openvoiceos", "plugin", "option-matcher", "fuzzy"]
