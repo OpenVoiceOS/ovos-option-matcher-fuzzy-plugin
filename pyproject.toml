@@ -17,6 +17,8 @@ classifiers = [
 ]
 dependencies = [
     "ovos-plugin-manager>=2.4.0a1,<3.0.0",
+    "ovos-utils>=0.8.0",
+    "langcodes>=3.0.0",
     "rapidfuzz",
 ]
 

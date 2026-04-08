@@ -5,7 +5,9 @@ import os
 from functools import lru_cache
 from typing import Dict, List, Optional, Set, Tuple
 
+from langcodes import tag_distance
 from ovos_plugin_manager.templates.agents import OptionMatcherEngine
+from ovos_utils.lang import standardize_lang_tag
 from ovos_utils.parse import match_one
 
 _LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
@@ -22,35 +24,48 @@ def _read_voc(path: str) -> Set[str]:
         return {line.strip().lower() for line in fh if line.strip()}
 
 
-def _candidate_langs(lang: str) -> List[str]:
-    """Return locale directories to try in priority order.
+@lru_cache(maxsize=1)
+def _available_langs() -> List[str]:
+    """Return canonical BCP-47 tags for all locale directories present on disk."""
+    try:
+        return [standardize_lang_tag(d) for d in os.listdir(_LOCALE_DIR)
+                if os.path.isdir(os.path.join(_LOCALE_DIR, d))]
+    except OSError:
+        return ["en-US"]
 
-    Normalises *lang* to canonical BCP-47 form (``xx-XX``) so that callers
-    passing ``en-us`` or ``en-US`` both resolve to the same ``locale/en-US/``
-    directory.
+
+def _best_lang(lang: str) -> str:
+    """Return the closest available locale directory tag for *lang*.
+
+    Uses :func:`langcodes.tag_distance` to find the best match among the
+    locale directories shipped with this plugin, falling back to ``en-US``.
     """
-    parts = lang.split("-")
-    if len(parts) >= 2:
-        normalized = f"{parts[0].lower()}-{parts[1].upper()}"
-    else:
-        normalized = parts[0].lower()
-    return [normalized, parts[0].lower(), "en-US"]
+    lang = standardize_lang_tag(lang)
+    available = _available_langs()
+    if lang in available:
+        return lang
+    best, best_dist = "en-US", 10
+    for candidate in available:
+        dist = tag_distance(lang, candidate)
+        if dist < best_dist:
+            best, best_dist = candidate, dist
+    return best
 
 
 @lru_cache(maxsize=32)
 def _load_last_vocab(lang: str) -> Set[str]:
-    """Load last.voc for *lang*, falling back to en-us if absent.
+    """Load last.voc for the locale closest to *lang*.
 
     Args:
-        lang: BCP-47 language tag.
+        lang: BCP-47 language tag (any casing).
 
     Returns:
         Set of lowercase words/phrases meaning "last" in that language.
     """
-    for candidate in _candidate_langs(lang):
-        path = os.path.join(_LOCALE_DIR, candidate, "last.voc")
-        if os.path.isfile(path):
-            return _read_voc(path)
+    resolved = _best_lang(lang)
+    path = os.path.join(_LOCALE_DIR, resolved, "last.voc")
+    if os.path.isfile(path):
+        return _read_voc(path)
     return {"last", "latest", "final"}
 
 
@@ -63,20 +78,19 @@ def _load_position_vocab(lang: str) -> Dict[int, Set[str]]:
     they win over shorter single-word entries during longest-match selection.
 
     Args:
-        lang: BCP-47 language tag.
+        lang: BCP-47 language tag (any casing).
 
     Returns:
         Dict mapping 0-based index to a set of trigger words/phrases.
     """
+    resolved = _best_lang(lang)
     result: Dict[int, Set[str]] = {}
     for i, (ord_name, card_name) in enumerate(zip(_ORDINAL_NAMES, _CARDINAL_NAMES)):
         words: Set[str] = set()
         for voc_name in (ord_name, card_name):
-            for candidate in _candidate_langs(lang):
-                path = os.path.join(_LOCALE_DIR, candidate, f"{voc_name}.voc")
-                if os.path.isfile(path):
-                    words |= _read_voc(path)
-                    break
+            path = os.path.join(_LOCALE_DIR, resolved, f"{voc_name}.voc")
+            if os.path.isfile(path):
+                words |= _read_voc(path)
         result[i] = words
     return result
 
@@ -111,7 +125,7 @@ class FuzzyOptionMatcherPlugin(OptionMatcherEngine):
         Returns:
             The matched option string, or None if no match.
         """
-        lang = lang or "en-us"
+        lang = lang or "en-US"
         min_conf: float = self.config.get("min_conf", 0.65)
         utterance_lower = utterance.lower()
 
