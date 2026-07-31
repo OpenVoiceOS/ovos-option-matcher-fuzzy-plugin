@@ -1,14 +1,12 @@
 # Changelog
 
-## [0.0.1a2](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/tree/0.0.1a2) (2026-04-08)
+## [0.0.2a1](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/tree/0.0.2a1) (2026-07-31)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/compare/0441ff59a90d82e10ab1d8af2d2f9099049c6193...0.0.1a2)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/compare/0.0.1...0.0.2a1)
 
 **Merged pull requests:**
 
-- Fix/locales [\#4](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/pull/4) ([JarbasAl](https://github.com/JarbasAl))
-- fix\(i18n\): normalize locale folders to canonical BCP-47 [\#2](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/pull/2) ([JarbasAl](https://github.com/JarbasAl))
-- chore: Configure Renovate [\#1](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/pull/1) ([renovate[bot]](https://github.com/apps/renovate))
+- docs: rewrite README in Simplified Technical English [\#6](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/pull/6) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
