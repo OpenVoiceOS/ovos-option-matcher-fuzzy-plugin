@@ -1,10 +1,10 @@
 # How it works
 
-`FuzzyOptionMatcherPlugin.match_option(utterance, options, lang)` runs four stages in order. The first stage that produces a match returns immediately; if nothing matches, `None` is returned.
+`FuzzyOptionMatcherPlugin.match_option(utterance, options, lang)` runs four stages in order. The first stage that produces a match returns immediately. If nothing matches, `None` is returned.
 
 ---
 
-## Stage 1 — Fuzzy match
+## Stage 1: Fuzzy match
 
 Uses [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) `WRatio` similarity (via `ovos_utils.parse.match_one`) to score the utterance against every option. If the best score is ≥ `min_conf` (default `0.65`), that option is returned.
 
@@ -19,11 +19,11 @@ WRatio("I want pasta please", "salad") → 0.41
 
 This handles synonyms, paraphrasing, filler words, and minor misspellings without any language-specific logic.
 
-**When it fails**: the score falls below `min_conf` — typically when the user gives a reference ("the second one") rather than naming the option directly.
+**When it fails**: the score falls below `min_conf`: typically when the user gives a reference ("the second one") rather than naming the option directly.
 
 ---
 
-## Stage 2 — Last-option vocab
+## Stage 2: Last-option vocab
 
 Checks whether any word or phrase from `locale/<lang>/last.voc` appears in the utterance. If so, returns `options[-1]`.
 
@@ -34,13 +34,13 @@ last.voc (en-US): final, last, latest
 "last" found → return options[-1]
 ```
 
-`last.voc` is translated for every supported language. For German, it contains *letzte*, *letzten*, etc.; for Spanish, *final*, *último*, etc.
+`last.voc` is translated for every supported language. For German, it contains *letzte*, *letzten*, and other forms. For Spanish, it contains *final*, *último*, and other forms.
 
 ---
 
-## Stage 3 — Ordinal and cardinal vocab
+## Stage 3: Ordinal and cardinal vocab
 
-Checks the utterance against `.voc` files for positions 1–10:
+Checks the utterance against `.voc` files for positions 1-10:
 
 | Position | Ordinal file | Cardinal file |
 |----------|-------------|---------------|
@@ -66,11 +66,11 @@ utterance: "the second one"
 → return options[1]
 ```
 
-This eliminates false positives ("one" in "second one") without any regex or word-boundary logic — the multi-word entry in the `.voc` file does the work.
+This eliminates false positives ("one" in "second one") without any regex or word-boundary logic: the multi-word entry in the `.voc` file does the work.
 
 ---
 
-## Stage 4 — Numeric fallback (optional)
+## Stage 4: Numeric fallback (optional)
 
 If `ovos-number-parser` is installed, calls `extract_number(utterance, ordinals=True, lang=lang)`. Handles:
 
@@ -99,7 +99,7 @@ Stage 1: WRatio("the second one", "pizza") = 0.38 < 0.65 → no
          WRatio("the second one", "pasta") = 0.41 < 0.65 → no
          WRatio("the second one", "salad") = 0.35 < 0.65 → no
 Stage 2: "last"/"final"/"latest" not in "the second one" → no
-Stage 3: "second one" in "the second one" → position 1 → "pasta" ✓
+Stage 3: "second one" in "the second one" → position 1 → "pasta" (match)
 ```
 
 ```
@@ -116,7 +116,7 @@ Stage 4: extract_number("something random") → None → no
 
 ## Configuration effect on stages
 
-`min_conf` only affects Stage 1. Stages 2–4 always run if Stage 1 fails, regardless of `min_conf`.
+`min_conf` only affects Stage 1. Stages 2-4 always run if Stage 1 fails, regardless of `min_conf`.
 
 Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring option (never falls through to vocab stages). Setting `min_conf: 1.0` disables fuzzy matching entirely.
 
@@ -124,7 +124,10 @@ Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring opti
 
 ## Source reference
 
-- `FuzzyOptionMatcherPlugin.match_option` — `ovos_option_matcher_fuzzy/__init__.py:92`
-- `_load_last_vocab(lang)` — loads and caches `last.voc` — `ovos_option_matcher_fuzzy/__init__.py:31`
-- `_load_position_vocab(lang)` — loads and caches all ordinal/cardinal `.voc` files into a `Dict[int, Set[str]]` — `ovos_option_matcher_fuzzy/__init__.py:47`
-- `_candidate_langs(lang)` — returns `[lang, lang.split("-")[0], "en-us"]` as lookup priority — `ovos_option_matcher_fuzzy/__init__.py:25`
+- `FuzzyOptionMatcherPlugin.match_option`: `ovos_option_matcher_fuzzy/__init__.py:92`
+- `_load_last_vocab(lang)`: loads and caches `last.voc`: `ovos_option_matcher_fuzzy/__init__.py:31`
+- `_load_position_vocab(lang)`: loads and caches all ordinal/cardinal `.voc` files into a `Dict[int, Set[str]]`: `ovos_option_matcher_fuzzy/__init__.py:47`
+- `_candidate_langs(lang)`: returns `[lang, lang.split("-")[0], "en-us"]` as lookup priority: `ovos_option_matcher_fuzzy/__init__.py:25`
+
+---
+[Home](index.md) · [Configuration →](configuration.md)

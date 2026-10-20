@@ -2,7 +2,7 @@
 
 Fuzzy-match `OptionMatcherEngine` plugin for [OpenVoiceOS](https://openvoiceos.org).
 
-Resolves a free-form user utterance to one of a predefined set of option slots — the kind of matching needed by `OVOSSkill.ask_selection`. Supports 15 languages out of the box via locale vocab files, with no required dependency on a number parser.
+Resolves a free-form user utterance to one of a predefined set of option slots: the kind of matching needed by `OVOSSkill.ask_selection`. Supports 15 languages out of the box via locale vocab files, with no required dependency on a number parser.
 
 ## Install
 
@@ -35,21 +35,21 @@ class MySkill(OVOSSkill):
 ```
 
 The user can answer with:
-- A direct name: `"rock music"` — matched by fuzzy scoring
-- An ordinal or cardinal: `"the second one"`, `"number two"`, `"two"` — matched by locale vocab
-- A last-position reference: `"the last one"` — matched by `last.voc`
-- A digit or higher ordinal: `"option 7"` — matched by `ovos-number-parser` if installed
+- A direct name: `"rock music"`: matched by fuzzy scoring
+- An ordinal or cardinal: `"the second one"`, `"number two"`, `"two"`: matched by locale vocab
+- A last-position reference: `"the last one"`: matched by `last.voc`
+- A digit or higher ordinal: `"option 7"`: matched by `ovos-number-parser` if installed
 
 `ask_selection` passes `self.lang` (canonical BCP-47, e.g. `en-US`) to the plugin.
 
 ## How it works
 
-Resolution runs in four stages — first match wins:
+Resolution runs in four stages: first match wins:
 
-1. **Fuzzy match** — rapidfuzz `WRatio` similarity against all options. Returns immediately if score ≥ `min_conf` (default `0.65`).
-2. **Last-option vocab** — locale-aware `last.voc` words ("last", "final", "letzte", …). Returns the final option.
-3. **Ordinal/cardinal vocab** — locale files `first.voc` … `tenth.voc` and `one.voc` … `ten.voc`. Longest matching phrase wins to avoid false positives (e.g. "one" in "second one").
-4. **Numeric fallback** — `ovos-number-parser` (optional). Handles digits and ordinals above ten.
+1. **Fuzzy match**: rapidfuzz `WRatio` similarity against all options. Returns immediately if score ≥ `min_conf` (default `0.65`).
+2. **Last-option vocab**: locale-aware `last.voc` words ("last", "final", "letzte", …). Returns the final option.
+3. **Ordinal/cardinal vocab**: locale files `first.voc` … `tenth.voc` and `one.voc` … `ten.voc`. Longest matching phrase wins to avoid false positives (e.g. "one" in "second one").
+4. **Numeric fallback**: `ovos-number-parser` (optional). Handles digits and ordinals above ten.
 
 Returns `None` if nothing matches.
 

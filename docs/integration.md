@@ -2,7 +2,7 @@
 
 ## With OVOSSkill.ask_selection (automatic)
 
-When `ovos-option-matcher-fuzzy-plugin` is installed, `ask_selection` uses it automatically as the default matcher — no skill code changes needed.
+When `ovos-option-matcher-fuzzy-plugin` is installed, `ask_selection` uses it automatically as the default matcher: no skill code changes needed.
 
 ```python
 from ovos_workshop.skills.ovos import OVOSSkill
@@ -19,10 +19,10 @@ class MySkill(OVOSSkill):
 ```
 
 The user can answer any of:
-- `"pasta"` — fuzzy match
-- `"the second one"` / `"number two"` / `"two"` — position vocab
-- `"the last one"` — last.voc
-- `"option 3"` — numeric fallback (requires `ovos-number-parser`)
+- `"pasta"`: fuzzy match
+- `"the second one"` / `"number two"` / `"two"`: position vocab
+- `"the last one"`: last.voc
+- `"option 3"`: numeric fallback (requires `ovos-number-parser`)
 
 ### Per-skill plugin override
 
@@ -83,7 +83,7 @@ strict = FuzzyOptionMatcherPlugin(config={"min_conf": 0.85})
 # Ordinal/last/numeric stages still work normally when fuzzy fails
 ```
 
-Note: when the plugin is loaded by `OVOSSkill._get_selection_engine`, it is instantiated with no config (`cls()` — `ovos_workshop/skills/ovos.py:1964`). A custom `min_conf` is only effective when you instantiate the plugin directly as shown above.
+Note: when the plugin is loaded by `OVOSSkill._get_selection_engine`, it is instantiated with no config (`cls()`: `ovos_workshop/skills/ovos.py:1964`). A custom `min_conf` is only effective when you instantiate the plugin directly as shown above.
 
 ### With explicit language
 
@@ -93,7 +93,7 @@ matcher.match_option("primera", options, lang="es-ES")      # "red"
 matcher.match_option("troisième", options, lang="fr-FR")    # "blue"
 ```
 
-When called through `OVOSSkill.ask_selection`, `lang` is `self.lang` — a canonical BCP-47 tag (e.g. `en-US`, `de-DE`) returned by `standardize_lang_tag`. — `ovos_workshop/skills/ovos.py:2035`
+When called through `OVOSSkill.ask_selection`, `lang` is `self.lang`: a canonical BCP-47 tag (e.g. `en-US`, `de-DE`) returned by `standardize_lang_tag`.: `ovos_workshop/skills/ovos.py:2035`
 
 ---
 
@@ -146,3 +146,6 @@ if choice is None:
     self.speak_dialog("did_not_understand")
     return
 ```
+
+---
+[← Localization](localization.md) · [Home](index.md)

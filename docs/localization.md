@@ -1,6 +1,6 @@
 # Localization
 
-The plugin ships `.voc` files for 15 languages. All locale files live under `locale/<lang>/` and are loaded at runtime — no code changes are needed to add or improve a language.
+The plugin ships `.voc` files for 15 languages. All locale files live under `locale/<lang>/` and are loaded at runtime: no code changes are needed to add or improve a language.
 
 ---
 
@@ -8,23 +8,23 @@ The plugin ships `.voc` files for 15 languages. All locale files live under `loc
 
 | Tag | Language | Ordinal/cardinal voc | Multi-word phrases | `last.voc` |
 |-----|----------|---------------------|--------------------|------------|
-| `ca-ES` | Catalan | ✓ | — | ✓ |
-| `cs-CZ` | Czech | ✓ | — | ✓ |
-| `da-DK` | Danish | ✓ | — | ✓ |
-| `de-DE` | German | ✓ | ✓ | ✓ |
-| `en-US` | English | ✓ | ✓ | ✓ |
-| `es-ES` | Spanish | ✓ | ✓ | ✓ |
-| `eu-ES` | Basque | ✓ | — | ✓ |
-| `fr-FR` | French | ✓ | ✓ | ✓ |
-| `gl-ES` | Galician | ✓ | — | ✓ |
-| `it-IT` | Italian | ✓ | — | ✓ |
-| `nl-NL` | Dutch | ✓ | — | ✓ |
-| `pl-PL` | Polish | ✓ | — | ✓ |
-| `pt-BR` | Portuguese (Brazil) | ✓ | — | ✓ |
-| `pt-PT` | Portuguese (Portugal) | ✓ | — | ✓ |
-| `sv-SE` | Swedish | ✓ | — | ✓ |
+| `ca-ES` | Catalan | Yes | No | Yes |
+| `cs-CZ` | Czech | Yes | No | Yes |
+| `da-DK` | Danish | Yes | No | Yes |
+| `de-DE` | German | Yes | Yes | Yes |
+| `en-US` | English | Yes | Yes | Yes |
+| `es-ES` | Spanish | Yes | Yes | Yes |
+| `eu-ES` | Basque | Yes | No | Yes |
+| `fr-FR` | French | Yes | Yes | Yes |
+| `gl-ES` | Galician | Yes | No | Yes |
+| `it-IT` | Italian | Yes | No | Yes |
+| `nl-NL` | Dutch | Yes | No | Yes |
+| `pl-PL` | Polish | Yes | No | Yes |
+| `pt-BR` | Portuguese (Brazil) | Yes | No | Yes |
+| `pt-PT` | Portuguese (Portugal) | Yes | No | Yes |
+| `sv-SE` | Swedish | Yes | No | Yes |
 
-Languages marked **"Multi-word phrases ✓"** have entries like "second one", "número dos" in their ordinal `.voc` files. Languages without them rely on single-word ordinals and the numeric fallback stage.
+Languages marked **"Multi-word phrases: Yes"** have entries like "second one", "número dos" in their ordinal `.voc` files. Languages without them rely on single-word ordinals and the numeric fallback stage.
 
 ---
 
@@ -56,7 +56,7 @@ locale/
     ten.voc
 ```
 
-**Filenames are canonical English** — do not rename them. Only the content is translated.
+**Filenames are canonical English**: do not rename them. Only the content is translated.
 
 Each file contains one word or phrase per line, lowercase. Blank lines and leading/trailing whitespace are ignored.
 
@@ -70,7 +70,7 @@ For a given `lang` (e.g. `"de-DE"`), the plugin tries:
 2. `locale/de/<file>.voc` (language prefix without region)
 3. `locale/en-US/<file>.voc` (hard fallback)
 
-Locale folder names use canonical BCP-47 casing (e.g. `en-US`, `de-DE`, `pt-BR`). The `lang` value passed by `OVOSSkill.ask_selection` comes from `self.lang`, which is already normalized by `standardize_lang_tag` and matches this casing. — `ovos_workshop/skills/ovos.py:2035`
+Locale folder names use canonical BCP-47 casing (e.g. `en-US`, `de-DE`, `pt-BR`). The `lang` value passed by `OVOSSkill.ask_selection` comes from `self.lang`, which is already normalized by `standardize_lang_tag` and matches this casing.: `ovos_workshop/skills/ovos.py:2035`
 
 Results are cached per language tag in memory (`lru_cache`) so file I/O only happens once per process.
 
@@ -90,9 +90,9 @@ Results are cached per language tag in memory (`lru_cache`) so file I/O only hap
 
 3. Translate every line in every file. Keep one entry per line.
 
-4. **`last.voc`** — include all common words and inflected forms meaning "last", "final", or "latest" in the target language.
+4. **`last.voc`**: include all common words and inflected forms meaning "last", "final", or "latest" in the target language.
 
-5. **Ordinal files** (`first.voc` … `tenth.voc`) — include:
+5. **Ordinal files** (`first.voc` … `tenth.voc`): include:
    - The ordinal word(s) in all grammatical forms (gender, case, etc.)
    - Multi-word phrases: `"<ordinal> one"`, `"number <cardinal>"`, `"option <cardinal>"` translated naturally.
 
@@ -107,7 +107,7 @@ Results are cached per language tag in memory (`lru_cache`) so file I/O only hap
    nummer zwei
    ```
 
-6. **Cardinal files** (`one.voc` … `ten.voc`) — include the number word in all forms. These are merged with the ordinal file for the same position.
+6. **Cardinal files** (`one.voc` … `ten.voc`): include the number word in all forms. These are merged with the ordinal file for the same position.
 
 7. Submit a PR or contribute via [OVOS GitLocalize](https://gitlocalize.com/openvoiceos).
 
@@ -135,5 +135,8 @@ uv run pytest test/ -v
 | One entry per line | No commas, semicolons, or pipes |
 | Lowercase only | The plugin lowercases the utterance before matching |
 | No diacritics stripping | Include the exact Unicode form users would say |
-| Filenames unchanged | Always `first.voc`, `one.voc`, etc. — never translate the filename |
-| Multi-word entries encouraged | Include natural phrases like "second one", "option two" — they prevent false positives from short cardinals |
+| Filenames unchanged | Always `first.voc`, `one.voc`, etc.: never translate the filename |
+| Multi-word entries encouraged | Include natural phrases like "second one", "option two": they prevent false positives from short cardinals |
+
+---
+[← Configuration](configuration.md) · [Home](index.md) · [Integration →](integration.md)
