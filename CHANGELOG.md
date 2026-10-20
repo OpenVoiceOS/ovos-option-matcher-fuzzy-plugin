@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a1](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/tree/0.0.3a1) (2026-10-20)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/compare/0.0.2a1...0.0.3a1)
+
+**Merged pull requests:**
+
+- fix: allow ovos-plugin-manager 3 [\#8](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/pull/8) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.0.2a1](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/tree/0.0.2a1) (2026-07-31)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-option-matcher-fuzzy-plugin/compare/0.0.1...0.0.2a1)
