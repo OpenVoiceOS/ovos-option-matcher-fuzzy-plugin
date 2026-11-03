@@ -9,7 +9,7 @@ description = "Fuzzy-match OptionMatcher agent plugin for OpenVoiceOS"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [{name = "OpenVoiceOS", email = "jarbasai@mailfence.com"}]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["OVOS", "openvoiceos", "plugin", "option-matcher", "fuzzy"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -18,7 +18,7 @@ classifiers = [
 dependencies = [
     "ovos-plugin-manager>=2.4.0a1",
     "ovos-utils>=0.8.0",
-    "langcodes>=3.0.0",
+    "ovos-spec-tools[langcodes]>=1.17.0a1",
     "rapidfuzz",
     "ovos-number-parser>=0.0.1,<1.0.0",
 ]

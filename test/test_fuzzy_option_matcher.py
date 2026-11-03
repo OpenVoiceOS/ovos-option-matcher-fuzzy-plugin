@@ -3,9 +3,12 @@
 
 """Unit tests for FuzzyOptionMatcherPlugin."""
 
+import os
+
 import pytest
 from unittest.mock import patch
-from ovos_option_matcher_fuzzy import FuzzyOptionMatcherPlugin, _load_last_vocab, _load_position_vocab
+from ovos_option_matcher_fuzzy import (FuzzyOptionMatcherPlugin, _LOCALE_DIR, _best_lang,
+                                       _load_last_vocab, _load_position_vocab, _read_voc)
 
 
 OPTIONS = ["play jazz music", "play rock music", "play classical music"]
@@ -162,3 +165,35 @@ def test_entry_point_registered():
     assert "ovos-option-matcher-fuzzy-plugin" in plugins, (
         f"Not found in OPM. Found: {list(plugins.keys())}"
     )
+
+
+# --- Locale resolution: a bare tag is its default region ---
+# The default region is where the language first appeared and is still
+# spoken: English is en-GB and Portuguese is pt-PT.
+
+def test_bare_pt_resolves_to_pt_pt():
+    assert _best_lang("pt") == "pt-PT"
+
+
+def test_bare_pt_reads_the_pt_pt_vocab():
+    pt_pt = _read_voc(os.path.join(_LOCALE_DIR, "pt-PT", "last.voc"))
+    pt_br = _read_voc(os.path.join(_LOCALE_DIR, "pt-BR", "last.voc"))
+    assert pt_pt != pt_br
+    assert _load_last_vocab("pt") == pt_pt
+
+
+def test_bare_en_prefers_en_gb_over_en_us():
+    with patch("ovos_option_matcher_fuzzy._available_langs",
+               return_value=["en-US", "en-GB"]):
+        assert _best_lang("en") == "en-GB"
+
+
+def test_bare_en_uses_en_us_when_it_is_the_only_english():
+    assert _best_lang("en") == "en-US"
+
+
+def test_regional_tag_keeps_its_own_region():
+    assert _best_lang("pt-br") == "pt-BR"
+    with patch("ovos_option_matcher_fuzzy._available_langs",
+               return_value=["en-GB", "en-US"]):
+        assert _best_lang("en-us") == "en-US"

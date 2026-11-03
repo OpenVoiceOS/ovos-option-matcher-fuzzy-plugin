@@ -5,9 +5,8 @@ import os
 from functools import lru_cache
 from typing import Dict, List, Optional, Set, Tuple
 
-from langcodes import tag_distance
 from ovos_plugin_manager.templates.agents import OptionMatcherEngine
-from ovos_utils.lang import standardize_lang_tag
+from ovos_spec_tools.language import closest_lang, standardize_lang
 from ovos_utils.parse import match_one
 
 _LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
@@ -28,7 +27,7 @@ def _read_voc(path: str) -> Set[str]:
 def _available_langs() -> List[str]:
     """Return canonical BCP-47 tags for all locale directories present on disk."""
     try:
-        return [standardize_lang_tag(d) for d in os.listdir(_LOCALE_DIR)
+        return [standardize_lang(d) for d in os.listdir(_LOCALE_DIR)
                 if os.path.isdir(os.path.join(_LOCALE_DIR, d))]
     except OSError:
         return ["en-US"]
@@ -37,19 +36,17 @@ def _available_langs() -> List[str]:
 def _best_lang(lang: str) -> str:
     """Return the closest available locale directory tag for *lang*.
 
-    Uses :func:`langcodes.tag_distance` to find the best match among the
-    locale directories shipped with this plugin, falling back to ``en-US``.
+    Uses :func:`ovos_spec_tools.language.closest_lang` to find the best match
+    among the locale directories shipped with this plugin. A tag with no
+    region is measured from its default region, so ``pt`` resolves to
+    ``pt-PT`` and ``en`` to ``en-GB`` when both regions ship.
     """
-    lang = standardize_lang_tag(lang)
+    lang = standardize_lang(lang)
     available = _available_langs()
     if lang in available:
         return lang
-    best, best_dist = None, 100000
-    for candidate in available:
-        dist = tag_distance(lang, candidate)
-        if dist < best_dist:
-            best, best_dist = candidate, dist
-    if best is None or best_dist > 10:
+    best = closest_lang(lang, available)
+    if best is None:
         raise ValueError(f"Unsupported language: {lang!r}. Available: {available}")
     return best
 
