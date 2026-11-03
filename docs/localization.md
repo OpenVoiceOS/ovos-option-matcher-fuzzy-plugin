@@ -64,11 +64,7 @@ Each file contains one word or phrase per line, lowercase. Blank lines and leadi
 
 ## How lookup works
 
-For a given `lang` (e.g. `"de-DE"`), the plugin tries:
-
-1. `locale/de-DE/<file>.voc`
-2. `locale/de/<file>.voc` (language prefix without region)
-3. `locale/en-US/<file>.voc` (hard fallback)
+For a given `lang` (e.g. `"de-DE"`), the plugin reads `locale/de-DE/<file>.voc` when that directory ships. Otherwise it reads the closest shipped directory, as `ovos_spec_tools.language.closest_lang` picks it. A tag with no region is measured from its default region, the region where the language first appeared: `pt` resolves to `pt-PT`, not `pt-BR`. When no directory is within a distance of 10, the lookup raises `ValueError`.
 
 Locale folder names use canonical BCP-47 casing (e.g. `en-US`, `de-DE`, `pt-BR`). The `lang` value passed by `OVOSSkill.ask_selection` comes from `self.lang`, which is already normalized by `standardize_lang_tag` and matches this casing.: `ovos_workshop/skills/ovos.py:2035`
 
