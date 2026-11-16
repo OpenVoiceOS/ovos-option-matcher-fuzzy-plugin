@@ -10,16 +10,15 @@ from unittest.mock import patch
 from ovos_option_matcher_fuzzy import (FuzzyOptionMatcherPlugin, _LOCALE_DIR, _best_lang,
                                        _load_last_vocab, _load_position_vocab, _read_voc)
 
-
 OPTIONS = ["play jazz music", "play rock music", "play classical music"]
 SIMPLE = ["alpha", "beta", "gamma", "delta", "epsilon"]
+GENRES = ["jazz music", "rock music", "classical music", "folk music", "pop music"]
 
 
 @pytest.fixture(autouse=True)
 def clear_lru_caches():
     """Clear vocab caches before each test."""
     _load_last_vocab.cache_clear()
-    _load_position_vocab.cache_clear()
     yield
 
 
@@ -121,40 +120,76 @@ def test_match_cardinal_deux_french(matcher):
     assert matcher.match_option("deux", SIMPLE, lang="fr-fr") == "beta"
 
 
-# --- Position vocab caching and structure ---
-
-def test_position_vocab_has_ten_entries():
-    vocab = _load_position_vocab("en-us")
-    assert len(vocab) == 10
+def _items(count):
+    return [f"item {i}" for i in range(1, count + 1)]
 
 
-def test_position_vocab_index_zero_contains_first():
-    vocab = _load_position_vocab("en-us")
-    assert "first" in vocab[0]
-    assert "one" in vocab[0]
+# --- Spoken positions ---
+
+def test_match_digit_position(matcher):
+    assert matcher.match_option("option 7", _items(10), lang="en-us") == "item 7"
 
 
-def test_position_vocab_index_one_contains_second():
-    vocab = _load_position_vocab("en-us")
-    assert "second" in vocab[1]
-    assert "two" in vocab[1]
+def test_number_seventeen_picks_seventeenth(matcher):
+    assert matcher.match_option("number seventeen", _items(20), lang="en-us") == "item 17"
 
 
-# --- Numeric fallback (ovos-number-parser) ---
-
-def test_numeric_fallback_used_when_vocab_misses(matcher):
-    # "option 7" won't be in ordinal vocab (only 1-10 covered by en-us)
-    # but extract_number should still handle it for options lists > 5
-    big_options = [f"item {i}" for i in range(1, 11)]
-    result = matcher.match_option("option 7", big_options, lang="en-us")
-    assert result == "item 7"
+def test_number_seventeen_out_of_range_picks_nothing(matcher):
+    assert matcher.match_option("number seventeen", _items(10), lang="en-us") is None
 
 
-def test_numeric_fallback_graceful_without_number_parser(matcher):
-    """Plugin must not crash when ovos-number-parser is not installed."""
-    with patch.dict("sys.modules", {"ovos_number_parser": None}):
-        result = matcher.match_option("xyzzy quux zork", SIMPLE, lang="en-us")
-    assert result is None
+def test_twenty_first_picks_twenty_first(matcher):
+    assert matcher.match_option("the twenty first", _items(25), lang="en-us") == "item 21"
+
+
+def test_number_seventeen_portuguese(matcher):
+    assert matcher.match_option("o número dezassete", _items(20), lang="pt-pt") == "item 17"
+
+
+def test_number_seventeen_portuguese_out_of_range(matcher):
+    assert matcher.match_option("o número dezassete", _items(10), lang="pt-pt") is None
+
+
+def test_twelfth_portuguese(matcher):
+    assert matcher.match_option("quero a décima segunda", _items(15), lang="pt-pt") == "item 12"
+
+
+def test_number_seventeen_spanish(matcher):
+    assert matcher.match_option("el número diecisiete", _items(20), lang="es-es") == "item 17"
+
+
+def test_twenty_first_spanish(matcher):
+    assert matcher.match_option("la vigésima primera", _items(25), lang="es-es") == "item 21"
+
+
+def test_number_seventeen_german(matcher):
+    assert matcher.match_option("nummer siebzehn", _items(20), lang="de-de") == "item 17"
+
+
+def test_twenty_first_german(matcher):
+    assert matcher.match_option("die einundzwanzigste", _items(25), lang="de-de") == "item 21"
+
+
+def test_thirteenth_german(matcher):
+    assert matcher.match_option("die dreizehnte bitte", _items(15), lang="de-de") == "item 13"
+
+
+# --- Articles name no position ---
+
+def test_article_portuguese_picks_nothing(matcher):
+    assert matcher.match_option("quero a que tem uma guitarra", GENRES, lang="pt-pt") is None
+
+
+def test_article_spanish_picks_nothing(matcher):
+    assert matcher.match_option("la que tiene una guitarra", GENRES, lang="es-es") is None
+
+
+def test_article_german_picks_nothing(matcher):
+    assert matcher.match_option("die mit einer Gitarre", GENRES, lang="de-de") is None
+
+
+def test_article_before_an_ordinal_picks_the_ordinal(matcher):
+    assert matcher.match_option("uma guitarra, a segunda opção", GENRES, lang="pt-pt") == "rock music"
 
 
 # --- Entry point ---
