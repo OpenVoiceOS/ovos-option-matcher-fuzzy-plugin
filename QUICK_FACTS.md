@@ -11,6 +11,6 @@
 | Base class | `ReRankerEngine` (`ovos_plugin_manager.templates.agents`) |
 | Key dependency | `rapidfuzz`, `ovos-number-parser`, `ovos-plugin-manager<3.0.0` |
 | License | Apache 2.0 |
-| Min Python | 3.10 |
+| Min Python | 3.11 |
 | Config key | `min_conf` (float, default `0.65`) |
 | Test file | `test/test_fuzzy_reranker.py` (10 tests) |
