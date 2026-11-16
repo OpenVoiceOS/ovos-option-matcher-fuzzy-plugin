@@ -2,18 +2,12 @@
 
 Fuzzy-match `OptionMatcherEngine` plugin for [OpenVoiceOS](https://openvoiceos.org).
 
-Resolves a free-form user utterance to one of a predefined set of option slots: the kind of matching needed by `OVOSSkill.ask_selection`. Supports 15 languages out of the box via locale vocab files, with no required dependency on a number parser.
+Resolves a free-form user utterance to one of a predefined set of option slots: the kind of matching needed by `OVOSSkill.ask_selection`. Supports 15 languages out of the box. Spoken positions are read with [numtag](https://github.com/TigreGotico/numtag).
 
 ## Install
 
 ```bash
 pip install ovos-option-matcher-fuzzy-plugin
-```
-
-With optional numeric-fallback support (handles positions above 10 and raw digit references):
-
-```bash
-pip install "ovos-option-matcher-fuzzy-plugin[number-parser]"
 ```
 
 ## How a skill uses it
@@ -36,20 +30,18 @@ class MySkill(OVOSSkill):
 
 The user can answer with:
 - A direct name: `"rock music"`: matched by fuzzy scoring
-- An ordinal or cardinal: `"the second one"`, `"number two"`, `"two"`: matched by locale vocab
+- An ordinal, a cardinal or digits: `"the second one"`, `"number seventeen"`, `"option 7"`: read by numtag
 - A last-position reference: `"the last one"`: matched by `last.voc`
-- A digit or higher ordinal: `"option 7"`: matched by `ovos-number-parser` if installed
 
 `ask_selection` passes `self.lang` (canonical BCP-47, e.g. `en-US`) to the plugin.
 
 ## How it works
 
-Resolution runs in four stages: first match wins:
+Resolution runs in three stages: first match wins:
 
 1. **Fuzzy match**: rapidfuzz `WRatio` similarity against all options. Returns immediately if score ≥ `min_conf` (default `0.65`).
 2. **Last-option vocab**: locale-aware `last.voc` words ("last", "final", "letzte", …). Returns the final option.
-3. **Ordinal/cardinal vocab**: locale files `first.voc` … `tenth.voc` and `one.voc` … `ten.voc`. Longest matching phrase wins to avoid false positives (e.g. "one" in "second one").
-4. **Numeric fallback**: `ovos-number-parser` (optional). Handles digits and ordinals above ten.
+3. **Spoken position**: numtag reads the numbers in the utterance. The first ordinal or cardinal whole number from 1 to the option count picks that option. A number out of range picks nothing, and an article ("uma guitarra") is no position.
 
 Returns `None` if nothing matches.
 
@@ -76,7 +68,7 @@ Note: when the plugin is loaded automatically by `ask_selection`, it is instanti
 
 ## Supported languages
 
-Ordinal, cardinal, and last-word vocab is provided for:
+Last-word vocab is provided for the languages below. numtag reads numbers in each of them:
 
 | Tag | Language |
 |-----|----------|

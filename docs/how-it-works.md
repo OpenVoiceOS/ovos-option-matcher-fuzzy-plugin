@@ -1,6 +1,6 @@
 # How it works
 
-`FuzzyOptionMatcherPlugin.match_option(utterance, options, lang)` runs four stages in order. The first stage that produces a match returns immediately. If nothing matches, `None` is returned.
+`FuzzyOptionMatcherPlugin.match_option(utterance, options, lang)` runs three stages in order. The first stage that produces a match returns immediately. If nothing matches, `None` is returned.
 
 ---
 
@@ -38,55 +38,25 @@ last.voc (en-US): final, last, latest
 
 ---
 
-## Stage 3: Ordinal and cardinal vocab
+## Stage 3: Spoken position
 
-Checks the utterance against `.voc` files for positions 1-10:
+Calls `numtag.tag_numbers(utterance, lang)`, which returns every number in the utterance in reading order, with its value, its kind and a confidence. The first mention that meets all of these conditions picks the option at that position:
 
-| Position | Ordinal file | Cardinal file |
-|----------|-------------|---------------|
-| 1st | `first.voc` | `one.voc` |
-| 2nd | `second.voc` | `two.voc` |
-| … | … | … |
-| 10th | `tenth.voc` | `ten.voc` |
-
-Both files are merged per position. The matcher scans the utterance for every phrase in both files and picks the **longest matching phrase**. Longer phrases win because ordinal `.voc` files also contain multi-word entries:
+- The kind is ordinal or cardinal.
+- The value is a whole number from 1 to `len(options)`.
+- The confidence is above `numtag.ARTICLE_CONFIDENCE`. numtag gives that score to an article next to its noun ("uma guitarra", "una guitarra", "einer Gitarre"), which names no position.
 
 ```
-locale/en-US/second.voc:
-  second
-  second one      ← also here
-  number two
-  option two
+utterance: "number seventeen"
+options:   20 entries
 
-utterance: "the second one"
-  "one"        → matches position 0 (one.voc), length 3
-  "second"     → matches position 1 (second.voc), length 6
-  "second one" → matches position 1 (second.voc), length 10  ← wins
-
-→ return options[1]
+tag_numbers("number seventeen", "en-US") → "seventeen", 17, cardinal, 1.0
+1 ≤ 17 ≤ 20 → return options[16]
 ```
 
-This eliminates false positives ("one" in "second one") without any regex or word-boundary logic: the multi-word entry in the `.voc` file does the work.
+A number out of range picks nothing: "number seventeen" with ten options returns `None`. numtag reads whole words, so "seven" inside "seventeen" is no match. It also reads digits ("option 7") and long ordinals ("the twenty first", "a vigésima primeira", "die einundzwanzigste").
 
----
-
-## Stage 4: Numeric fallback (optional)
-
-If `ovos-number-parser` is installed, calls `extract_number(utterance, ordinals=True, lang=lang)`. Handles:
-
-- Raw digits: *"option 7"*, *"number 11"*
-- Ordinals beyond ten: *"the twelfth one"*
-- Language-specific number words not in the `.voc` files
-
-```
-utterance: "option 7"
-options:   ["a", "b", "c", "d", "e", "f", "g", "h"]
-
-extract_number("option 7") → 7.0
-7 ≤ len(options) → return options[6]  # "g"
-```
-
-If `ovos-number-parser` is not installed, this stage is skipped silently.
+In "the second one", "second" comes before "one", so the pick is position 2.
 
 ---
 
@@ -99,7 +69,7 @@ Stage 1: WRatio("the second one", "pizza") = 0.38 < 0.65 → no
          WRatio("the second one", "pasta") = 0.41 < 0.65 → no
          WRatio("the second one", "salad") = 0.35 < 0.65 → no
 Stage 2: "last"/"final"/"latest" not in "the second one" → no
-Stage 3: "second one" in "the second one" → position 1 → "pasta" (match)
+Stage 3: numtag reads "second", ordinal 2 → "pasta" (match)
 ```
 
 ```
@@ -107,8 +77,7 @@ match_option("something random", ["pizza", "pasta", "salad"])
 
 Stage 1: all scores < 0.65 → no
 Stage 2: no last-vocab hit → no
-Stage 3: no position vocab hit → no
-Stage 4: extract_number("something random") → None → no
+Stage 3: numtag reads no number → no
 → return None
 ```
 
@@ -116,9 +85,9 @@ Stage 4: extract_number("something random") → None → no
 
 ## Configuration effect on stages
 
-`min_conf` only affects Stage 1. Stages 2-4 always run if Stage 1 fails, regardless of `min_conf`.
+`min_conf` only affects Stage 1. Stages 2-3 always run if Stage 1 fails, regardless of `min_conf`.
 
-Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring option (never falls through to vocab stages). Setting `min_conf: 1.0` disables fuzzy matching entirely.
+Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring option (never falls through to the later stages). Setting `min_conf: 1.0` disables fuzzy matching entirely.
 
 ---
 
@@ -126,7 +95,6 @@ Setting `min_conf: 0.0` causes Stage 1 to always return the highest-scoring opti
 
 - `FuzzyOptionMatcherPlugin.match_option`: `ovos_option_matcher_fuzzy/__init__.py:92`
 - `_load_last_vocab(lang)`: loads and caches `last.voc`: `ovos_option_matcher_fuzzy/__init__.py:31`
-- `_load_position_vocab(lang)`: loads and caches all ordinal/cardinal `.voc` files into a `Dict[int, Set[str]]`: `ovos_option_matcher_fuzzy/__init__.py:47`
 - `_candidate_langs(lang)`: returns `[lang, lang.split("-")[0], "en-us"]` as lookup priority: `ovos_option_matcher_fuzzy/__init__.py:25`
 
 ---

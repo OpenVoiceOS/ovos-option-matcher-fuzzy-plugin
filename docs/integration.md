@@ -20,9 +20,8 @@ class MySkill(OVOSSkill):
 
 The user can answer any of:
 - `"pasta"`: fuzzy match
-- `"the second one"` / `"number two"` / `"two"`: position vocab
+- `"the second one"` / `"number two"` / `"two"` / `"option 3"`: spoken position, read by numtag
 - `"the last one"`: last.voc
-- `"option 3"`: numeric fallback (requires `ovos-number-parser`)
 
 ### Per-skill plugin override
 
@@ -80,7 +79,7 @@ matcher.match_option("I have no idea", options)           # None
 ```python
 strict = FuzzyOptionMatcherPlugin(config={"min_conf": 0.85})
 # Stage 1 now requires a very close fuzzy match
-# Ordinal/last/numeric stages still work normally when fuzzy fails
+# Last-option and spoken-position stages still work normally when fuzzy fails
 ```
 
 Note: when the plugin is loaded by `OVOSSkill._get_selection_engine`, it is instantiated with no config (`cls()`: `ovos_workshop/skills/ovos.py:1964`). A custom `min_conf` is only effective when you instantiate the plugin directly as shown above.
