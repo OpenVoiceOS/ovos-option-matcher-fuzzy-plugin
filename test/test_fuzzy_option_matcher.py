@@ -185,6 +185,10 @@ def test_article_german_picks_nothing(matcher):
     assert matcher.match_option("die mit einer Gitarre", GENRES, lang="de-de") is None
 
 
+def test_article_before_an_ordinal_picks_the_ordinal(matcher):
+    assert matcher.match_option("uma guitarra, a segunda opção", GENRES, lang="pt-pt") == "rock music"
+
+
 # --- Entry point ---
 
 def test_entry_point_registered():

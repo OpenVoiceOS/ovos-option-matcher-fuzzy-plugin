@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import List, Optional, Set
 
 from langcodes import tag_distance
-from numtag import ARTICLE_CONFIDENCE, Kind, tag_numbers
+from numtag import Kind, Reason, tag_numbers
 from ovos_plugin_manager.templates.agents import OptionMatcherEngine
 from ovos_utils.lang import standardize_lang_tag
 from ovos_utils.parse import match_one
@@ -76,8 +76,8 @@ class FuzzyOptionMatcherPlugin(OptionMatcherEngine):
     2. Locale-aware ``last.voc`` keyword — returns the final option.
     3. Spoken position read by numtag: the first ordinal or cardinal whole
        number from 1 to ``len(options)``, in reading order ("the second
-       one", "number seventeen", "option 7").  numtag scores a lone article
-       ("uma guitarra") at ``ARTICLE_CONFIDENCE``; such mentions name no
+       one", "number seventeen", "option 7").  numtag marks a lone article
+       ("uma guitarra") with ``Reason.ARTICLE``; such mentions name no
        position and are skipped.
     4. None if nothing matches.
 
@@ -114,7 +114,7 @@ class FuzzyOptionMatcherPlugin(OptionMatcherEngine):
         for mention in tag_numbers(utterance, lang):
             if (mention.kind in (Kind.ORDINAL, Kind.CARDINAL)
                     and mention.value.isdigit()
-                    and mention.confidence > ARTICLE_CONFIDENCE
+                    and Reason.ARTICLE not in mention.reasons
                     and 1 <= int(mention.value) <= len(options)):
                 return options[int(mention.value) - 1]
 

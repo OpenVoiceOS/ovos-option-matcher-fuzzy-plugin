@@ -40,11 +40,11 @@ last.voc (en-US): final, last, latest
 
 ## Stage 3: Spoken position
 
-Calls `numtag.tag_numbers(utterance, lang)`, which returns every number in the utterance in reading order, with its value, its kind and a confidence. The first mention that meets all of these conditions picks the option at that position:
+Calls `numtag.tag_numbers(utterance, lang)`, which returns every number in the utterance in reading order, with its value, its kind, a confidence and its reasons. The first mention that meets all of these conditions picks the option at that position:
 
 - The kind is ordinal or cardinal.
 - The value is a whole number from 1 to `len(options)`.
-- The confidence is above `numtag.ARTICLE_CONFIDENCE`. numtag gives that score to an article next to its noun ("uma guitarra", "una guitarra", "einer Gitarre"), which names no position.
+- The reasons do not include `numtag.Reason.ARTICLE`. numtag gives that reason to an article next to its noun ("uma guitarra", "una guitarra", "einer Gitarre"), which names no position.
 
 ```
 utterance: "number seventeen"

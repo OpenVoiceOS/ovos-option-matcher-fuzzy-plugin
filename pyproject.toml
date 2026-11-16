@@ -20,7 +20,7 @@ dependencies = [
     "ovos-utils>=0.8.0",
     "langcodes>=3.0.0",
     "rapidfuzz",
-    "numtag>=0.8.2a1",
+    "numtag>=0.9.0a1",
 ]
 
 [project.urls]
